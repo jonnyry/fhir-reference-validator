@@ -41,8 +41,8 @@ namespace FhirReferenceValidator
                 else if (profile is CodeSystem)
                 {
                 }
-                //else if (profile is StructureDefinition)
-                    //Validate(profileFilename, (StructureDefinition)profile);
+                else if (profile is StructureDefinition)
+                    Validate(profileFilename, (StructureDefinition)profile);
                 else if (profile is ValueSet)
                     Validate(profileFilename, (ValueSet)profile);
             }
