@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FhirReferenceValidator
+namespace FhirReferenceValidator.Engine
 {
     internal class FhirConvertor : Newtonsoft.Json.JsonConverter
     {

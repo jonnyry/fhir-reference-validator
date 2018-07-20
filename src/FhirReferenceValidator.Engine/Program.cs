@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FhirReferenceValidator
+namespace FhirReferenceValidator.Engine
 {
     class Program
     {
@@ -37,6 +37,8 @@ namespace FhirReferenceValidator
 
                 FhirReferenceValidator validator = new FhirReferenceValidator(profiles);
                 validator.Validate();
+
+                Logger.WriteCollectedErrors();
             }
             catch (Exception e)
             {

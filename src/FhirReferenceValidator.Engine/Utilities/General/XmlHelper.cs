@@ -9,7 +9,7 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-namespace FhirReferenceValidator
+namespace FhirReferenceValidator.Engine
 {
     public static class XmlHelper
     {

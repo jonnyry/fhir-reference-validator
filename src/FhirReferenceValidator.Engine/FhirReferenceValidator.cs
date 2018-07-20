@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Hl7.Fhir.Model.ElementDefinition;
 
-namespace FhirReferenceValidator
+namespace FhirReferenceValidator.Engine
 {
     internal class FhirReferenceValidator
     {
