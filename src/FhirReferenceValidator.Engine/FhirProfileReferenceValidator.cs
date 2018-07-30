@@ -9,48 +9,44 @@ using System.Threading.Tasks;
 
 namespace FhirReferenceValidator.Engine
 {
-    class Program
+    public class FhirProfileReferenceValidator
     {
-        static void Main(string[] args)
+        private Logger _logger;
+
+        public void ValidateReferences(string rootDirectory, Action<string> logWriter)
         {
-            try
+            _logger = new Logger(logWriter);
+
+            if (string.IsNullOrWhiteSpace(rootDirectory))
             {
-                if ((args == null) || (args.Length != 1) || string.IsNullOrWhiteSpace(args[0]))
-                {
-                    Logger.LogError("Please pass the directory containing profiles to validate.");
-                    return;
-                }
-
-                if (!Directory.Exists(args[0]))
-                {
-                    Logger.LogError("Directory does not exist.");
-                    return;
-                }
-
-                Dictionary<string, Base> profiles = LoadProfiles(args[0], "*.xml", SearchOption.AllDirectories);
-
-                if ((profiles == null) || (profiles.Count == 0))
-                {
-                    Logger.LogError("No profiles found");
-                    return;
-                }
-
-                FhirReferenceValidator validator = new FhirReferenceValidator(profiles);
-                validator.Validate();
-
-                Logger.WriteCollectedErrors();
+                _logger.LogError("Please pass the directory containing profiles to validate.");
+                return;
             }
-            catch (Exception e)
+
+            if (!Directory.Exists(rootDirectory))
             {
-                Logger.LogError("Exception occurred");
-                Logger.Log(e);
+                _logger.LogError("Directory does not exist.");
+                return;
             }
+
+            Dictionary<string, Base> profiles = LoadProfiles(rootDirectory, "*.xml", SearchOption.AllDirectories);
+
+            if ((profiles == null) || (profiles.Count == 0))
+            {
+                _logger.LogError("No profiles found");
+                return;
+            }
+
+            FhirReferenceValidator validator = new FhirReferenceValidator(profiles, _logger);
+            validator.Validate();
+
+            _logger.WriteCollectedErrors();
         }
 
-        private static Dictionary<string, Base> LoadProfiles(string rootPath, string searchFilter, SearchOption searchOption)
+        private Dictionary<string, Base> LoadProfiles(string rootPath, string searchFilter, SearchOption searchOption)
         {
-            Logger.Log("Searching " + Path.GetFullPath(rootPath));
-            Logger.Log("");
+            _logger.Log("Searching " + Path.GetFullPath(rootPath));
+            _logger.Log("");
 
             Dictionary<string, Base> result = new Dictionary<string, Base>();
 
@@ -58,7 +54,7 @@ namespace FhirReferenceValidator.Engine
 
             foreach (string file in files)
             {
-                Logger.Log("Loading " + file);
+                _logger.Log("Loading " + file);
                 string fileContents = FileHelper.ReadInputFile(file);
 
                 string rootNodeName = XmlHelper.GetRootNodeName(fileContents);
@@ -70,7 +66,7 @@ namespace FhirReferenceValidator.Engine
                 result.Add(file, parser.Parse(fileContents, type));
             }
 
-            Logger.Log("");
+            _logger.Log("");
 
             return result;
         }

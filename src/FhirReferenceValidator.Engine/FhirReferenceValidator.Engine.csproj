@@ -76,7 +76,7 @@
   <ItemGroup>
     <Compile Include="FhirReferenceValidator.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="FhirProfileReferenceValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Conversion\CustomContractResolver.cs" />
     <Compile Include="Utilities\Conversion\FhirConvertor.cs" />

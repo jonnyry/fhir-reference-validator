@@ -10,47 +10,93 @@ namespace FhirReferenceValidator.Engine
 {
     internal class FhirReferenceValidator
     {
+        private Logger _logger;
+
         private static string Hl7BaseStructureDefinitionPrefix = "http://hl7.org/fhir/StructureDefinition/";
         private static string Hl7BaseValueSetPrefix = "http://hl7.org/fhir/ValueSet/";
         private static string BcpValueSetUrl = "http://www.rfc-editor.org/bcp/bcp13.txt";
         private static string Hl7BaseCodeSystemPrefix = "http://hl7.org/fhir/";
         private static string SnomedCodeSystemUrl = "http://snomed.info/sct";
 
-        private Dictionary<string, Base> profiles;
+        private Dictionary<string, Base> _profiles;
 
-        private StructureDefinition[] StructureDefinitions { get { return profiles.Values.Where(t => t is StructureDefinition).Select(t => (StructureDefinition)t).ToArray(); } }
-        private ValueSet[] ValueSets { get { return profiles.Values.Where(t => t is ValueSet).Select(t => (ValueSet)t).ToArray(); } }
-        private CodeSystem[] CodeSystems { get { return profiles.Values.Where(t => t is CodeSystem).Select(t => (CodeSystem)t).ToArray(); } }
-
-        public FhirReferenceValidator(Dictionary<string, Base> profiles)
+        private StructureDefinition[] StructureDefinitions
         {
-            this.profiles = profiles;
+            get
+            {
+                return _profiles
+                    .Values
+                    .Where(t => t is StructureDefinition)
+                    .Select(t => (StructureDefinition)t)
+                    .ToArray();
+            }
+        }
+
+        private ValueSet[] ValueSets
+        {
+            get
+            {
+                return _profiles
+                    .Values
+                    .Where(t => t is ValueSet)
+                    .Select(t => (ValueSet)t)
+                    .ToArray();
+            }
+        }
+
+        private CodeSystem[] CodeSystems
+        {
+            get
+            {
+                return _profiles
+                    .Values
+                    .Where(t => t is CodeSystem)
+                    .Select(t => (CodeSystem)t)
+                    .ToArray();
+            }
+        }
+
+        public FhirReferenceValidator(Dictionary<string, Base> profiles, Logger logger)
+        {
+            _profiles = profiles;
+            _logger = logger;
         }
 
         public void Validate()
         {
-            Logger.Log("Starting validation");
+            _logger.Log("Starting validation");
+            _logger.Log("");
 
-            foreach (string profileFilename in profiles.Keys)
+            foreach (string profileFilename in _profiles.Keys)
             {
-                Base profile = profiles[profileFilename];
+                Base profile = _profiles[profileFilename];
 
-                if (profile is ConceptMap)
-                {
-                }
-                else if (profile is CodeSystem)
-                {
-                }
-                else if (profile is StructureDefinition)
+                if (profile is StructureDefinition)
                     Validate(profileFilename, (StructureDefinition)profile);
                 else if (profile is ValueSet)
                     Validate(profileFilename, (ValueSet)profile);
+                else
+                    continue;
+
+                _logger.Log("");
             }
+        }
+
+        private void Validate(string filename, ConceptMap profile)
+        {
+            _logger.Log("Validating ConceptMap" + filename);
+            _logger.LogError("ConceptMap validation not currently supported.");
+        }
+
+        private void Validate(string filename, CodeSystem profile)
+        {
+            _logger.Log("Validating CodeSystem" + filename);
+            _logger.LogError("CodeSystem validation not currently supported.");
         }
 
         private void Validate(string filename, ValueSet valueSet)
         {
-            Logger.Log("Validating ValueSet " + filename);
+            _logger.Log("Validating ValueSet " + filename);
 
             if (valueSet.Compose == null)
                 return;
@@ -60,24 +106,24 @@ namespace FhirReferenceValidator.Engine
 
             foreach (ValueSet.ConceptSetComponent compose in valueSet.Compose.Include)
             {
-                Logger.Log(" Checking CodeSystem > " + compose.System);
+                _logger.Log(" Checking CodeSystem > " + compose.System);
 
                 if (!IsCodeSystemReferenceValid(compose.System))
-                    Logger.LogError("Could not find codesystem " + compose.System);
+                    _logger.LogError("Could not find codesystem " + compose.System);
             }
         }
 
         private void Validate(string filename, StructureDefinition structureDefinition)
         {
-            Logger.Log("Validating StructureDefinition " + filename);
+            _logger.Log("Validating StructureDefinition " + filename);
 
             if ((structureDefinition.Snapshot == null) || (structureDefinition.Snapshot.Element == null) || (structureDefinition.Snapshot.Element.Count == 0))
                 throw new Exception(filename + " has no snapshot component");
 
-            Logger.Log(" Checking Base URL > " + structureDefinition.BaseDefinition);
+            _logger.Log(" Checking Base URL > " + structureDefinition.BaseDefinition);
 
             if (!IsResourceReferenceValid(structureDefinition.BaseDefinition))
-                Logger.LogError("Could not find reference " + structureDefinition.BaseDefinition);
+                _logger.LogError("Could not find reference " + structureDefinition.BaseDefinition);
 
             foreach (ElementDefinition element in structureDefinition.Snapshot.Element)
             {
@@ -88,18 +134,18 @@ namespace FhirReferenceValidator.Engine
                     {
                         if (!string.IsNullOrWhiteSpace(typeRef.Profile))
                         {
-                            Logger.Log(" Checking " + typeRef.Code + " > " + typeRef.Profile);
+                            _logger.Log(" Checking " + typeRef.Code + " > " + typeRef.Profile);
 
                             if (!IsResourceReferenceValid(typeRef.Profile))
-                                Logger.LogError("Could not find reference " + typeRef.Profile);
+                                _logger.LogError("Could not find reference " + typeRef.Profile);
                         }
 
                         if (!string.IsNullOrWhiteSpace(typeRef.TargetProfile))
                         {
-                            Logger.Log(" Checking " + typeRef.Code + " > " + typeRef.TargetProfile);
+                            _logger.Log(" Checking " + typeRef.Code + " > " + typeRef.TargetProfile);
 
                             if (!IsResourceReferenceValid(typeRef.TargetProfile))
-                                Logger.LogError("Could not find reference " + typeRef.TargetProfile);
+                                _logger.LogError("Could not find reference " + typeRef.TargetProfile);
                         }
                     }
                 }
@@ -112,10 +158,10 @@ namespace FhirReferenceValidator.Engine
 
                         if (!string.IsNullOrWhiteSpace(reference.Reference))
                         {
-                            Logger.Log(" Checking Valueset > " + reference.Reference);
+                            _logger.Log(" Checking Valueset > " + reference.Reference);
 
                             if (!IsValueSetReferenceValue(reference.Reference))
-                                Logger.LogError("Could not find valueset " + reference.Reference);
+                                _logger.LogError("Could not find valueset " + reference.Reference);
                         }
                     }
                     else if (element.Binding.ValueSet is FhirUri)
@@ -124,10 +170,10 @@ namespace FhirReferenceValidator.Engine
 
                         if (!string.IsNullOrWhiteSpace(reference.Value))
                         {
-                            Logger.Log(" Checking Valueset > " + reference.Value);
+                            _logger.Log(" Checking Valueset > " + reference.Value);
 
                             if (!IsValueSetReferenceValue(reference.Value))
-                                Logger.LogError("Could not find valueset " + reference.Value);
+                                _logger.LogError("Could not find valueset " + reference.Value);
                         }
                     }
                     else

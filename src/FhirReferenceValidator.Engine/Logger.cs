@@ -8,38 +8,38 @@ namespace FhirReferenceValidator.Engine
 {
     internal class Logger
     {
-        private static List<string> _errors = new List<string>(); 
+        private Action<string> _logWriter;
+        private List<string> _errors = new List<string>(); 
 
-        public static void Log(string message)
+        public Logger(Action<string> logWriter)
         {
-            Console.WriteLine(message);
+            _logWriter = logWriter;
         }
 
-        public static void LogError(string message)
+        public void Log(string message)
+        {
+            _logWriter(message);
+        }
+
+        public void LogError(string message)
         {
             _errors.Add(message);
-            Console.WriteLine("ERROR > " + message);
-            Console.WriteLine("");
+            _logWriter("ERROR > " + message);
         }
 
-        public static void Log(Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
-        public static void WriteCollectedErrors()
+        public void WriteCollectedErrors()
         {
             if (_errors.Count == 0)
                 return;
 
-            Console.WriteLine("");
-            Console.WriteLine("--------------------------------------------------");
-            Console.WriteLine("ERRORS OCCURRED:");
+            _logWriter("");
+            _logWriter("--------------------------------------------------");
+            _logWriter("ERRORS OCCURRED:");
 
             foreach (string error in _errors)
-                Console.WriteLine(" " + error);
+                _logWriter(" " + error);
 
-            Console.WriteLine("--------------------------------------------------");
+            _logWriter("--------------------------------------------------");
         }
     }
 }

@@ -22,5 +22,17 @@ namespace FhirReferenceValidator.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ChosenFolder {
+            get {
+                return ((string)(this["ChosenFolder"]));
+            }
+            set {
+                this["ChosenFolder"] = value;
+            }
+        }
     }
 }
