@@ -1,3 +1,3 @@
 # fhir-reference-validator
 
-<img src="screenshot.png" />
+<img style="border: 1px solid black" src="screenshot.png" />
